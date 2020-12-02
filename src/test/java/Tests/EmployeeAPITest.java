@@ -1,6 +1,7 @@
 package Tests;
 
 import Models.EmployeeCreateResponse;
+import Utils.EmployeeDataProvider;
 import io.restassured.http.ContentType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -11,8 +12,7 @@ import static org.hamcrest.Matchers.*;
 public class EmployeeAPITest extends BaseTest {
 
     @Test
-    public void requestEmployeeId1_logRequestAndResponseDetsils() {
-
+    public void requestEmployeeId1_logRequestAndResponseDetails() {
         given().
                 spec(requestSpecification).log().all().
                 when().get("employee/1").
@@ -22,7 +22,6 @@ public class EmployeeAPITest extends BaseTest {
 
     @Test
     public void requestEmployeeId1_checkContentType_expectsJson() {
-
         given().
                 spec(requestSpecification).
                 when().get("employee/1").
@@ -32,7 +31,6 @@ public class EmployeeAPITest extends BaseTest {
 
     @Test
     public void requestEmployeeId1_checkEmployeeName_expectsTigerNixon() {
-
         given().
                 spec(requestSpecification).
                 when().get("employee/1").
@@ -42,7 +40,6 @@ public class EmployeeAPITest extends BaseTest {
 
     @Test
     public void requestEmployeeList_checkEmployeeName_expectsTigerNixon() {
-
         given().
                 spec(requestSpecification).
                 when().get("employees").
@@ -51,8 +48,7 @@ public class EmployeeAPITest extends BaseTest {
     }
 
     @Test
-    public void requestEmployeeList_checksize_expects24() {
-
+    public void requestEmployeeList_checkSize_expects24() {
         given().
                 spec(requestSpecification).
                 when().get("employees").
@@ -61,26 +57,22 @@ public class EmployeeAPITest extends BaseTest {
     }
 
     @Test
-    public void getEmployeeData_validateEmployeeId() {
-
+    public void getEmployeeData_validateEmployeeName() {
         EmployeeCreateResponse employeeCreateResponse =
-        given().
-                spec(requestSpecification).
-                when().
-                get("employee/1").
-                as(EmployeeCreateResponse.class);
+                given().
+                        spec(requestSpecification).
+                        when().
+                        get("employee/1").
+                        as(EmployeeCreateResponse.class);
 
-        System.out.println(employeeCreateResponse.getData().getName());
         Assert.assertEquals(
                 "Tiger Nixon",
                 employeeCreateResponse.getData().getName()
         );
-
     }
 
     @Test
-    public void extractEmployeeData_validateEmployeeId() {
-
+    public void extractEmployeeData_validateEmployeeName() {
         String employeeName =
                 given().
                         spec(requestSpecification).
@@ -89,12 +81,22 @@ public class EmployeeAPITest extends BaseTest {
                         then().extract().
                         jsonPath().getString("data.employee_name");
 
-        System.out.println(employeeName);
-        Assert.assertEquals(
-                "Tiger Nixon", employeeName
-        );
-
+        Assert.assertEquals("Tiger Nixon", employeeName);
     }
 
+    @Test(dataProvider = "employeeData", dataProviderClass = EmployeeDataProvider.class)
+    public void requestEmployeeDataById_checkSpecifiedEmployeeName(String id, String name) {
+        String employeeName =
+                given().
+                        spec(requestSpecification).
+                        pathParam("id", id).
+                        when().
+                        get("employee/{id}").
+                        then().
+                        log().body().
+                        extract().
+                        jsonPath().getString("data.employee_name");
 
+        Assert.assertEquals(employeeName, name);
+    }
 }
